@@ -12,170 +12,150 @@ namespace пз2
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            DetailsView1.Visible = false;
+            Button13.Visible = false;
+            Label8.Visible = false;
+            Label9.Visible = false;
+            Label10.Visible = false;
+            Label11.Visible = false;
+            FileUpload1.Visible = false;
+            TextBox3.Visible = false;
+            TextBox4.Visible = false;
+            TextBox5.Visible = false;
         }
 
-        protected void Button1_Click(object sender, EventArgs e)
+        protected void Button9_Click(object sender, EventArgs e)
         {
             try
             {
                 string crit;
-                // Формируем запрос с фильтром по типу
-                crit = "SELECT * FROM Q_picture_Sell WHERE IDType = " + DropDownList2.SelectedValue;
-
+                crit = "SELECT * FROM Q_Picture_for_Sell WHERE IDType= " + DropDownList2.SelectedValue;
                 SqlDataSource3.SelectCommand = crit;
                 GridView1.DataBind();
-
-                Label10.Text = "Фильтр по типу применён";
             }
-            catch (Exception ex)
+            catch (Exception ex1)
             {
-                Label10.Text = "Ошибка: " + ex.Message;
+                Label7.Text = ex1.Message;
+                return;
             }
         }
 
-        protected void Button2_Click(object sender, EventArgs e)
+        protected void Button10_Click(object sender, EventArgs e)
         {
             try
             {
                 string crit;
-                // Формируем запрос с фильтром по автору
-                crit = "SELECT * FROM Q_picture_Sell WHERE IDAuthor = " + DropDownList1.SelectedValue;
-
+                crit = "SELECT * FROM Q_Picture_for_Sell WHERE IDAuthor= " + DropDownList1.SelectedValue;
                 SqlDataSource3.SelectCommand = crit;
                 GridView1.DataBind();
-
-                Label10.Text = "Фильтр по автору применён";
             }
-            catch (Exception ex)
+            catch (Exception ex1)
             {
-                Label10.Text = "Ошибка: " + ex.Message;
+                Label7.Text = ex1.Message;
+                return;
             }
         }
 
-        protected void Button3_Click(object sender, EventArgs e)
+        protected void Button11_Click(object sender, EventArgs e)
         {
             try
             {
                 string crit, crit1;
-                // Формируем комбинированный фильтр
-                crit1 = "IDAuthor = " + DropDownList1.SelectedValue +
-                        " AND IDType = " + DropDownList2.SelectedValue;
-
-                crit = "SELECT * FROM Q_picture_Sell WHERE " + crit1;
-
+                crit1 = "IDAuthor= " + DropDownList1.SelectedValue + "AND IDType= " + DropDownList2.SelectedValue;
+                crit = "SELECT * FROM Q_Picture_for_Sell WHERE " + crit1;
                 SqlDataSource3.SelectCommand = crit;
                 GridView1.DataBind();
-
-                Label10.Text = "Комбинированный фильтр применён";
             }
-            catch (Exception ex)
+            catch (Exception ex1)
             {
-                Label10.Text = "Ошибка: " + ex.Message;
+                Label7.Text = ex1.Message;
+
+                return;
             }
         }
 
-        protected void Button4_Click(object sender, EventArgs e)
+        protected void Button12_Click(object sender, EventArgs e)
         {
             try
             {
                 string crit;
-                // Показываем все картины без фильтра
-                crit = "SELECT * FROM Q_picture_Sell";
-
+                crit = "SELECT * FROM Q_Picture_for_Sell ";
                 SqlDataSource3.SelectCommand = crit;
                 GridView1.DataBind();
-
-                Label10.Text = "Фильтры сброшены";
             }
-            catch (Exception ex)
+            catch (Exception ex1)
             {
-                Label10.Text = "Ошибка: " + ex.Message;
+                Label6.Text = ex1.Message;
+
+                return;
             }
         }
 
+        protected void Button13_Click(object sender, EventArgs e)
+        {
+            string mypath, myfile, filename, myimg;
+            myimg = "IMG\\";
+            mypath = Request.PhysicalApplicationPath;
+            myfile = FileUpload1.FileName;
+            filename = mypath + myimg + myfile;
+            Label7.Text = filename;
+
+            if (FileUpload1.HasFile == true)
+            {
+                FileUpload1.SaveAs(filename);
+            }
+            string СтрочкаПодключения = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
+            var Подключение = new OleDbConnection(СтрочкаПодключения);
+            try
+            {
+                Подключение.Open();
+            }
+            catch (Exception ex1)
+            {
+                Label8.Text = ex1.Message;
+                Подключение.Close();
+                return;
+            }
+            string s1, s2, sqlQ;
+            s1 = "INSERT INTO Picture (Название, IDAuthor, IDType, Цена, Год, Фото) VALUES (";
+            s2 = "'" + TextBox5.Text + "'," + DropDownList1.SelectedValue + "," + DropDownList2.SelectedValue + "," + TextBox3.Text + "," + Convert.ToInt32(TextBox4.Text) + ",'IMG\\" + myfile + "')";
+            sqlQ = s1 + s2;
+            Label8.Text = sqlQ;
+            var Команда = new OleDbCommand();
+            Команда.CommandText = sqlQ;
+            Команда.Connection = Подключение;
+            try
+            {
+                Команда.ExecuteNonQuery();
+                Label8.Text = "Картина добавлена";
+            }
+            catch (Exception ex1)
+            {
+                Label8.Text = ex1.Message;
+                Подключение.Close();
+                return;
+            }
+        }
         protected void GridView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            try
-            {
-                // Сохраняем ID выбранной картины в сессию
-                Session["IDGood"] = GridView1.SelectedValue;
-
-                // Здесь можно добавить вывод информации о выбранной картине
-                Label3.Text = "✓ Выбрана картина ID: " + GridView1.SelectedValue.ToString();
-            }
-            catch (Exception ex)
-            {
-                Label3.Text = "❌ Ошибка выбора: " + ex.Message;
-            }
+            Session["IDGood"] = GridView1.SelectedValue;
+            DetailsView1.Visible = true;
+            Button13.Visible = true;
+            Label8.Visible = true;
+            Label9.Visible = true;
+            Label10.Visible = true;
+            Label11.Visible = true;
+            FileUpload1.Visible = true;
+            TextBox3.Visible = true;
+            TextBox4.Visible = true;
+            TextBox5.Visible = true;
+            Button9.Visible = false;
+            Button10.Visible = false;
+            Button11.Visible = false;
+            Button12.Visible = false;
+            GridView1.Visible = false;
         }
 
-        // Метод загрузки деталей картины
-        private void LoadPictureDetails(int idGood)
-        {
-            try
-            {
-                string connStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
-                using (OleDbConnection conn = new OleDbConnection(connStr))
-                {
-                    conn.Open();
-                    string sql = "SELECT * FROM Q_picture_Sell WHERE IDGood = " + idGood;
-                    OleDbCommand cmd = new OleDbCommand(sql, conn);
-                    OleDbDataReader reader = cmd.ExecuteReader();
-
-                    if (reader.Read())
-                    {
-                        lblID.Text = reader["IDGood"].ToString();
-                        lblTitle.Text = reader["Название"].ToString();
-                        lblAuthor.Text = reader["Автор"].ToString(); // или "Фамилия"
-                        lblType.Text = reader["Типтовара"].ToString();
-                        lblPrice.Text = reader["Цена"].ToString();
-                        lblSold.Text = reader["Продано"].ToString();
-
-                        // Если есть изображение
-                        if (reader["Фото"] != DBNull.Value)
-                        {
-                            // imgPicture.ImageUrl = reader["Фото"].ToString();
-                        }
-                    }
-                    reader.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                Label3.Text = "Ошибка загрузки данных: " + ex.Message;
-            }
-        }
-
-        // Метод загрузки деталей картины
-        private void LoadPictureDetails(long id)
-        {
-            string connStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
-
-            using (var connection = new OleDbConnection(connStr))
-            {
-                connection.Open();
-
-                string sql = "SELECT * FROM Q_picture_Sell WHERE IDGood = " + id;
-                var cmd = new OleDbCommand(sql, connection);
-
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        lblID.Text = reader["IDGood"].ToString();
-                        lblTitle.Text = reader["Название"].ToString();
-                        lblAuthor.Text = reader["Автор"].ToString();
-                        lblType.Text = reader["Типтовара"].ToString();
-                        lblPrice.Text = reader["Цена"].ToString();
-                        lblSold.Text = reader["Продано"].ToString();
-
-                        // Отображение изображения
-                        string imgPath = reader["Фото"].ToString();
-                        imgPicture.ImageUrl = imgPath;
-                    }
-                }
-            }
-        }
+      
     }
 }

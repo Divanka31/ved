@@ -12,182 +12,211 @@ namespace пз2
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // ⚠️ Важно: код выполняется только при первой загрузке страницы
-            if (!IsPostBack)
-            {
-                GridView1.Visible = false;
-                GridView2.Visible = false;
-                DropDownList1.Visible = false;
-                DropDownList2.Visible = false;
-                Button4.Visible = true;   // "Создать выставку"
-                Button5.Visible = false; // "Просмотр картин"
-            }
+            GridView1.Visible = false;
+            GridView2.Visible = false;
+            DropDownList1.Visible = false;
+            DropDownList2.Visible = false;
+            Button9.Visible = true;
+            Button10.Visible = false;
         }
 
         // 📅 Обработка календаря
         protected void Calendar1_SelectionChanged(object sender, EventArgs e)
         {
-            if (this.Label.Text == "Ввод начальной даты")
+            if (this.Label6.Text == "Ввод начальной даты")
             {
-                this.TextBox3.Text = this.Calendar1.SelectedDate.ToString("dd.MM.yyyy");
-                this.Label.Text = "Ввод конечной даты";
+                this.TextBox3.Text = Convert.ToString(String.Format("{0:d}", this.Calendar1.SelectedDate));
+                this.Label6.Text = "Ввод конечной даты";
             }
             else
             {
-                this.TextBox4.Text = this.Calendar1.SelectedDate.ToString("dd.MM.yyyy");
-                this.Label.Text = "Ввод начальной даты";
+                this.TextBox4.Text = Convert.ToString(String.Format("{0:d}", this.Calendar1.SelectedDate));
+                this.Label6.Text = "Ввод начальной даты";
             }
         }
 
         // 🏛️ Кнопка "Создать выставку"
-        protected void Button4_Click(object sender, EventArgs e)
+        protected void Button9_Click(object sender, EventArgs e)
         {
-            // Используем Jet для .mdb (как в методичке). Если база .accdb, замените на ACE.OLEDB.12.0
-            string connStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
-
-            using (OleDbConnection conn = new OleDbConnection(connStr))
+            string СтрокаПодключения = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
+            var Подключение = new OleDbConnection(СтрокаПодключения);
+            try
             {
-                try
+                Подключение.Open();
+            }
+            catch (Exception ex1)
+            {
+                Label11.Text = ex1.Message;
+                Подключение.Close();
+                return;
+            }
+
+            string d1, d2, t, m;
+            d1 = Convert.ToString(TextBox3.Text);
+            d2 = Convert.ToString(TextBox4.Text);
+            t = Convert.ToString(TextBox5.Text);
+            m = Convert.ToString(TextBox6.Text);
+
+            string sqlQ;
+            sqlQ = "INSERT INTO EXHIBITION (Dateb, DateE,Thema,[Where]) VALUES ('" + d1 + "','" + d2 + "','" + t + "','" + m + "')";
+
+            Label12.Text = sqlQ;
+            var Команда = new OleDbCommand();
+            Команда.CommandText = sqlQ;
+            Команда.Connection = Подключение;
+            try
+            {
+                Команда.ExecuteNonQuery();
+                Label12.Text = "Выставка создана, выберите картины";
+
+                GridView1.Visible = true;
+                GridView2.Visible = false;
+                DropDownList1.Visible = true;
+                DropDownList2.Visible = true;
+                Button9.Visible = false;
+                Button10.Visible = true;
+            }
+            catch (Exception ex1)
+            {
+                Label11.Text = ex1.Message;
+                Подключение.Close();
+                return;
+            }
+            sqlQ = "SELECT IDexhibition FROM [EXHIBITION] ORDER BY IDexhibition DESC";
+            Label12.Text = sqlQ;
+            Команда.CommandText = sqlQ;
+            Команда.Connection = Подключение;
+            try
+            {
+                OleDbDataReader Чтение;
+                Чтение = Команда.ExecuteReader();
+                if (Чтение.Read() == true)
                 {
-                    conn.Open();
-
-                    string sql = "INSERT INTO EXHIBITION (Dateb, DateE, Thema, [Where]) VALUES ('" +
-                                 TextBox3.Text + "', '" + TextBox4.Text + "', '" +
-                                 TextBox5.Text + "', '" + TextBox6.Text + "')";
-
-                    OleDbCommand cmd = new OleDbCommand(sql, conn);
-                    cmd.ExecuteNonQuery();
-
-                    // Получаем ID новой выставки
-                    cmd.CommandText = "SELECT IDexhibition FROM EXHIBITION ORDER BY IDexhibition DESC";
-                    OleDbDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        Session["IDExh"] = reader.GetValue(0);
-                    }
-                    reader.Close();
-
-                    Label10.Text = "✓ Выставка создана! ID: " + Session["IDExh"];
-
-                    // Переключаем видимость для выбора картин
-                    GridView1.Visible = true;
-                    DropDownList1.Visible = true;
-                    DropDownList2.Visible = true;
-                    Button4.Visible = false;
-                    Button5.Visible = true;
-                }
-                catch (Exception ex)
-                {
-                    Label11.Text = "❌ Ошибка создания: " + ex.Message;
+                    var id = Чтение.GetValue(0);
+                    Session["IDExh"] = id;
+                    Label12.Text = Convert.ToString(id);
                 }
             }
+            catch (Exception ex1)
+            {
+                Label11.Text = ex1.Message;
+                Подключение.Close();
+                return;
+            }
+
         }
 
-        // 🔽 Фильтр по типу (Технике создания)
         protected void DropDownList1_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
             {
-                string crit = "SELECT * FROM Q_Picture_For_Sell WHERE IDType = " + DropDownList1.SelectedValue;
+                string crit;
+                crit = "SELECT * FROM Q_Picture_For_Sell WHERE IDType= " + DropDownList1.SelectedValue;
                 SqlDataSource3.SelectCommand = crit;
                 GridView1.DataBind();
 
-                // Оставляем интерфейс в состоянии "после создания выставки"
                 GridView1.Visible = true;
+                GridView2.Visible = false;
                 DropDownList1.Visible = true;
                 DropDownList2.Visible = true;
-                Button4.Visible = false;
-                Button5.Visible = true;
+                Button9.Visible = false;
+                Button10.Visible = true;
             }
-            catch (Exception ex)
+            catch (Exception ex1)
             {
-                Label11.Text = "Ошибка фильтра: " + ex.Message;
+                Label11.Text = ex1.Message;
+                return;
             }
         }
 
-        // 🔽 Фильтр по автору
         protected void DropDownList2_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
             {
-                string crit = "SELECT * FROM Q_Picture_For_Sell WHERE IDAuthor = " + DropDownList2.SelectedValue;
+                string crit;
+                crit = "SELECT * FROM Q_Picture_For_Sell WHERE IDAuthor= " + DropDownList2.SelectedValue;
                 SqlDataSource3.SelectCommand = crit;
-                GridView1.DataBind(); // ️ В вашем коде этой строки не было!
-
                 GridView1.Visible = true;
+                GridView2.Visible = false;
                 DropDownList1.Visible = true;
                 DropDownList2.Visible = true;
-                Button4.Visible = false;
-                Button5.Visible = true;
+                Button9.Visible = false;
+                Button10.Visible = true;
             }
-            catch (Exception ex)
+            catch (Exception ex1)
             {
-                Label11.Text = "Ошибка фильтра: " + ex.Message;
+                Label11.Text = ex1.Message;
+                return;
             }
         }
 
-        // 🖼️ Выбор картины на выставку (клик по "Выбор")
+        protected void GridView2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
         protected void GridView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string connStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
-
-            using (OleDbConnection conn = new OleDbConnection(connStr))
+            string СтрокаПодключения = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
+            var Подключение = new OleDbConnection(СтрокаПодключения);
+            try
             {
-                try
-                {
-                    conn.Open();
-                    long IDPict = Convert.ToInt64(GridView1.SelectedValue);
-                    long IDExh = Convert.ToInt64(Session["IDExh"]);
+                Подключение.Open();
+            }
+            catch (Exception ex1)
+            {
+                Label11.Text = ex1.Message;
+                Подключение.Close();
+                return;
+            }
+            String sqlQ;
+            long IDPict, IDExh;
+            IDPict = Convert.ToUInt32(GridView1.SelectedValue);
+            IDExh = Convert.ToUInt32(Session["IDExh"]);
 
-                    // ️ ВНИМАНИЕ: Проверьте имя поля в вашей БД! 
-                    // В методичке: IDexhibition. У вас в ошибке было: IDexhibitor. 
-                    // Если в таблице Exhibition_Picture поле называется IDexhibitor, замените ниже.
-                    string sql = "INSERT INTO Exhibition_Picture (IDpicture, IDexhibition) VALUES (" +
-                                 IDPict + ", " + IDExh + ")";
+            sqlQ = "INSERT INTO [Exhibition_Picture](IDpicture, IDexhibition) VALUES (" + IDPict + "," + IDExh + ")";
 
-                    OleDbCommand cmd = new OleDbCommand(sql, conn);
-                    cmd.ExecuteNonQuery();
+            Label12.Text = sqlQ;
+            var Команда = new OleDbCommand();
+            Команда.CommandText = sqlQ;
+            Команда.Connection = Подключение;
 
-                    Label10.Text = "✓ Картина (ID: " + IDPict + ") добавлена на выставку!";
-                }
-                catch (Exception ex)
-                {
-                    Label11.Text = "❌ Ошибка добавления: " + ex.Message;
-                }
+            try
+            {
+                Команда.ExecuteNonQuery();
+                Label12.Text = "Картина добавлена";
+
+                GridView1.Visible = true;
+                GridView2.Visible = false;
+                DropDownList1.Visible = true;
+                DropDownList2.Visible = true;
+                Button9.Visible = false;
+                Button10.Visible = true;
+            }
+            catch (Exception ex1)
+            {
+                Label11.Text = ex1.Message;
+                Подключение.Close();
+                return;
             }
         }
 
-        // 👁️ Кнопка "Просмотр картин"
-        protected void Button5_Click(object sender, EventArgs e)
+        protected void Button10_Click(object sender, EventArgs e)
         {
-            try
-            {
-                if (Session["IDExh"] == null)
-                {
-                    Label11.Text = "Сначала создайте выставку!";
-                    return;
-                }
+            long IDExh;
 
-                long IDExh = Convert.ToInt64(Session["IDExh"]);
+            IDExh = Convert.ToUInt32(Session["IDExh"]);
+            string crit;
+            crit = "SELECT * FROM [Q_Exhibition_Picture] WHERE IDexhibition=" + IDExh;
+            SqlDataSource4.SelectCommand = crit;
+            GridView2.DataBind();
 
-                // Фильтр картин на выставке
-                string crit = "SELECT * FROM Q_Exhibition_Picture WHERE IDexhibition = " + IDExh;
-
-                SqlDataSource4.SelectCommand = crit;
-                GridView2.DataBind();
-
-                // Переключаем видимость (скрываем выбор, показываем результат)
-                GridView1.Visible = false;
-                GridView2.Visible = true;
-                DropDownList1.Visible = false;
-                DropDownList2.Visible = false;
-                Button4.Visible = true;
-                Button5.Visible = false;
-            }
-            catch (Exception ex)
-            {
-                Label11.Text = "Ошибка просмотра: " + ex.Message;
-            }
+            GridView1.Visible = false;
+            GridView2.Visible = true;
+            DropDownList1.Visible = false;
+            DropDownList2.Visible = false;
+            Button9.Visible = true;
+            Button10.Visible = false;
         }
     } 
     }
