@@ -44,7 +44,7 @@ namespace пз2
 
         protected void Button9_Click(object sender, EventArgs e)
         {
-            string connStr = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + Server.MapPath("Web.mdb");
+            string connStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + Server.MapPath("Web.mdb");
             var connection = new OleDbConnection(connStr);
 
             try

@@ -72,6 +72,7 @@
     <Content Include="correct.aspx" />
     <Content Include="edit_pic.aspx" />
     <Content Include="edit_st.aspx" />
+    <Content Include="edit_st1.aspx" />
     <Content Include="find.aspx" />
     <Content Include="find2.aspx" />
     <Content Include="guest.aspx" />
@@ -146,6 +147,13 @@
     </Compile>
     <Compile Include="edit_st.aspx.designer.cs">
       <DependentUpon>edit_st.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="edit_st1.aspx.cs">
+      <DependentUpon>edit_st1.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="edit_st1.aspx.designer.cs">
+      <DependentUpon>edit_st1.aspx</DependentUpon>
     </Compile>
     <Compile Include="find.aspx.cs">
       <DependentUpon>find.aspx</DependentUpon>

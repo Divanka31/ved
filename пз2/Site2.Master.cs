@@ -32,7 +32,7 @@ namespace пз2
 
         protected void LinkButton4_Click(object sender, EventArgs e)
         {
-
+            Response.Redirect("edit_pic.aspx");
         }
     }
 }
